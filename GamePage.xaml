@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="SpaceWar.GamePage"
+             Title="GamePage">
+    <AbsoluteLayout x:Name="absoluteLayout" Background="Black">
+        <!-- Yıldız resimleri buraya eklenecek -->
+        <!-- Label for Slider -->
+        <Border Stroke="Blue" StrokeThickness="2"
+        AbsoluteLayout.LayoutBounds="0, 0, -1, -1" AbsoluteLayout.LayoutFlags="PositionProportional">
+            <Label x:Name="ScoreLabel" Text="Score : 0" FontSize="Medium" />
+        </Border>
+        <Border Stroke="Blue" StrokeThickness="2"
+        AbsoluteLayout.LayoutBounds="1, 0, -1, -1" AbsoluteLayout.LayoutFlags="PositionProportional">
+            <Label x:Name="HealthLabel" Text="Health : 100" FontSize="Medium" />
+        </Border>
+        <Slider x:Name="slider" Minimum="0" Maximum="100" Value="50" AbsoluteLayout.LayoutBounds="0, 0.8, 0.15, -1" AbsoluteLayout.LayoutFlags="PositionProportional, WidthProportional" Rotation="-90" />
+        <Border Stroke="Yellow" StrokeThickness="2"
+        AbsoluteLayout.LayoutBounds="0, 0.75, -1, -1" AbsoluteLayout.LayoutFlags="PositionProportional">
+            <Label Text="{Binding Source={x:Reference slider}, Path=Value}" FontSize="Large"
+           HorizontalOptions="Center" />
+        </Border>
+    </AbsoluteLayout>
+</ContentPage>
