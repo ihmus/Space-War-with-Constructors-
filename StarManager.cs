@@ -13,11 +13,19 @@ namespace SpaceWar
         private readonly AbsoluteLayout absoluteLayout;
         private readonly List<string> starList;
         private readonly Random random = new Random();
+        private MyShipBorders myShipBorders;
+        private EnemyListClass enemyListClass;
+        private GeneralConstructors GeneralConstructors;
+        private StarMoving StarMoving;
 
-        public StarManager(AbsoluteLayout layout, List<string> stars)
+        public StarManager(AbsoluteLayout layout, List<string> stars, MyShipBorders myShipBorders, EnemyListClass enemyListClass,GeneralConstructors gn,StarMoving st)
         {
             absoluteLayout = layout ?? throw new ArgumentNullException(nameof(layout));
             starList = stars ?? throw new ArgumentNullException(nameof(stars));
+            this.myShipBorders = myShipBorders;
+            this.enemyListClass = enemyListClass;
+            this.GeneralConstructors = gn;
+            this.StarMoving = st;
         }
 
         public async Task CallStarPngAsync()
@@ -122,14 +130,102 @@ namespace SpaceWar
                  * burası nesnelerle çarpışma kontrolünü sağlar
                  * 
                  * ************************
-                 * */
-                /*
-                if (id == 1) KonumTakipi(image, false, 10);
-                if (id == 2) KonumTakipi(image, false, -10);
-                */
+                 * *
+                 */
+                if (id == 3) KonumTakipi(image, false, 10,100);
+                if (id == 2) KonumTakipi(image, false, -10,100);
+            }
+        }
+        private async void KonumTakipi(Image image, bool ismybullet, int damage, int myhealth)
+        {
+            //Debug.WriteLine($"{image.X}{image.Y}");
+            bool hasBeenHit = false; // Bayrak değişkeni
+
+            if (ismybullet)
+            {
+                foreach (var enemyShipBorder in enemyListClass.EnemyShipBorders.ToList())
+                {
+                    if (IsBulletInsideEnemyBorder(image, enemyShipBorder))
+                    {
+                        if (absoluteLayout != null)
+                        {
+                            absoluteLayout.Children.Remove(enemyShipBorder);
+                            enemyListClass.EnemyShipBorders.Remove(enemyShipBorder);
+                            GeneralConstructors.Score+= 1;
+                            absoluteLayout.Children.Remove(image);/*
+                            ScoreLabel.Text = $"Score: {score}";*/
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if (IsBulletInsideEnemyBorder(image, myShipBorders.MyShipBorder) && !hasBeenHit)
+                {
+                    if (GeneralConstructors.Health > 0)
+                    {
+                        absoluteLayout.Children.Remove(image);
+                        GeneralConstructors.Health += damage;
+                        damage = 0;
+                        //HealthLabel.Text = $"Health: {myhealth}";
+                        hasBeenHit = true; // Vuruldu olarak işaretle
+
+                    }
+                    else
+                    {
+                        absoluteLayout.Children.Remove(image);
+                        absoluteLayout.Children.Remove(myShipBorders.MyShipBorder);
+                        GeneralConstructors.IsRunning = false;
+                        StarMoving.Stop();
+                        foreach (var enemyShipBorder in enemyListClass.EnemyShipBorders.ToList())
+                        {
+                            if (absoluteLayout != null)
+                            {
+                                absoluteLayout.Children.Remove(enemyShipBorder);
+                                //generalConstructors.ScoreLabel.Text = $"Score: {generalConstructors.Score}";
+                            }
+                        }
+                        Label OyunSonu = new Label();
+                        OyunSonu.Text = "Oyun Bitti";
+                        OyunSonu.TextColor = Color.FromRgb(255, 0, 0); 
+                        AbsoluteLayout.SetLayoutBounds(OyunSonu, new Rect(0.5, 0.5, AbsoluteLayout.GetLayoutBounds(OyunSonu).Width, AbsoluteLayout.GetLayoutBounds(OyunSonu).Height));
+
+                    }
+                }
             }
         }
 
+        private bool IsBulletInsideEnemyBorder(Image image, Border enemshipborder)
+        {
+            if (enemshipborder == null) return false;
 
+            // Get the position and size of the EnemyShipBorder
+            var enemyBounds = AbsoluteLayout.GetLayoutBounds(enemshipborder);
+            var enemyRect = new Rect(
+                enemyBounds.X * absoluteLayout.Width - (enemshipborder.Width / 2),
+                enemyBounds.Y * absoluteLayout.Height - (enemshipborder.Height / 2),
+                enemshipborder.Width,
+                enemshipborder.Height
+            );
+            /*
+            // Create a rectangle for the current position of the bullet
+            var bulletBounds = AbsoluteLayout.GetLayoutBounds(bulletImage);
+            var bulletRect = new Rect(
+                bulletBounds.X * absoluteLayout.Width - (bulletImage.Width / 2),
+                bulletBounds.Y * absoluteLayout.Height - (bulletImage.Height / 2),
+                bulletImage.Width,
+                bulletImage.Height
+            );
+            */
+            // Check if the bullet's bounding box is entirely within the enemy's bounding box
+            bool isWithinXBounds = image.X >= enemyRect.Left && image.X <= enemyRect.Right;
+            bool isWithinYBounds = image.Y >= enemyRect.Top && image.Y <= enemyRect.Bottom;
+
+            // Additional debugging information
+            //Debug.WriteLine($"isWithinXBounds: {isWithinXBounds}");
+            //Debug.WriteLine($"isWithinYBounds: {isWithinYBounds}");
+
+            return isWithinXBounds && isWithinYBounds;
+        }
     }
 }

@@ -12,13 +12,15 @@ namespace SpaceWar
         private static double speed;
         private static PositionManager positionManager;
         private static EnemyListClass enemyListClass;
-        public static void Initialize(AbsoluteLayout layout, List<string> ships, double initialSpeed,PositionManager pm,EnemyListClass e)
+        private static GeneralConstructors generalConstructors;
+        public static void Initialize(AbsoluteLayout layout, List<string> ships, double initialSpeed,PositionManager pm,EnemyListClass e,GeneralConstructors gc)
         {
             absoluteLayout = layout ?? throw new ArgumentNullException(nameof(layout));
             enemyShipList = ships ?? throw new ArgumentNullException(nameof(ships));
             speed = initialSpeed;
             positionManager = pm;
             enemyListClass = e;
+            generalConstructors = gc;
         }
 
         public static EnemyManager CreateEnemyManager()
@@ -26,7 +28,7 @@ namespace SpaceWar
             if (absoluteLayout == null || enemyShipList == null)
                 throw new InvalidOperationException("Factory is not initialized.");
 
-            return new EnemyManager(absoluteLayout, enemyShipList, speed,positionManager,enemyListClass);
+            return new EnemyManager(absoluteLayout, enemyShipList, speed,positionManager,enemyListClass,generalConstructors);
         }
     }
 }

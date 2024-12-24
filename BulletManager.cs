@@ -11,11 +11,15 @@ namespace SpaceWar
         private readonly AbsoluteLayout absoluteLayout;
         private readonly string BulletPath;
         private EnemyListClass enemyListClass;
-        public BulletManager(AbsoluteLayout layout, string bulletPath,EnemyListClass e)
+        private GeneralConstructors generalConstructors;
+        private StarMoving stars;
+        public BulletManager(AbsoluteLayout layout, string bulletPath,EnemyListClass e, GeneralConstructors generalConstructors,StarMoving st)
         {
             absoluteLayout = layout ?? throw new ArgumentNullException(nameof(layout));
             BulletPath = bulletPath ?? throw new ArgumentNullException(nameof(bulletPath));
             this.enemyListClass = e;
+            this.generalConstructors = generalConstructors;
+            this.stars = st;
         }
 
         public async void CreateNewBullet(double XPosition, double YPosition, bool isMyBullet,int MovingTime,Border myhipborder,int health)
@@ -100,9 +104,9 @@ namespace SpaceWar
                         {
                             absoluteLayout.Children.Remove(enemyShipBorder);
                             enemyListClass.EnemyShipBorders.Remove(enemyShipBorder);
-                            /*score += 1;*/
-                            absoluteLayout.Children.Remove(image);/*
-                            ScoreLabel.Text = $"Score: {score}";*/
+                            generalConstructors.Score += 1;
+                            absoluteLayout.Children.Remove(image);
+                            //generalConstructors.ScoreLabel.Text = $"Score: {generalConstructors.Score}";
                         }
                     }
                 }
@@ -111,20 +115,30 @@ namespace SpaceWar
             {
                 if (IsBulletInsideEnemyBorder(image, MyShipBorder) && !hasBeenHit)
                 {
-                    if (myhealth > 0)
+                    if (generalConstructors.Health > 0)
                     {
                         absoluteLayout.Children.Remove(image);
-                        myhealth -= damage;
+                        generalConstructors.Health -= damage;
                         damage = 0;
-                        //HealthLabel.Text = $"Health: {myhealth}";
                         hasBeenHit = true; // Vuruldu olarak iþaretle
 
                     }
                     else
                     {
+                        foreach (var enemyShipBorder in enemyListClass.EnemyShipBorders.ToList())
+                        {
+                            if (absoluteLayout != null)
+                            {
+                                absoluteLayout.Children.Remove(enemyShipBorder);
+
+                                //generalConstructors.ScoreLabel.Text = $"Score: {generalConstructors.Score}";
+                            }
+                            generalConstructors.HealthLabel.Text = "Oyun Bitti";
+                        }
                         absoluteLayout.Children.Remove(image);
                         absoluteLayout.Children.Remove(MyShipBorder);
-                        //isrunnig = false;
+                        generalConstructors.IsRunning = false;
+                        stars.Stop();
                     }
                 }
             }

@@ -17,25 +17,27 @@ namespace SpaceWar
         private double speed;
         private PositionManager positionManager=new PositionManager();
         private EnemyListClass enemyListClass;
+        private GeneralConstructors generalConstructors;
 
-        public EnemyManager(AbsoluteLayout layout, List<string> enemyShips, double speed,PositionManager pos, EnemyListClass enemyListClass)
+        public EnemyManager(AbsoluteLayout layout, List<string> enemyShips, double speed,PositionManager pos, EnemyListClass enemyListClass, GeneralConstructors generalConstructors)
         {
             absoluteLayout = layout ?? throw new ArgumentNullException(nameof(layout));
             enemyShipList = enemyShips ?? throw new ArgumentNullException(nameof(enemyShips));
             this.speed = speed;
             this.positionManager = pos;
             this.enemyListClass = enemyListClass;
+            this.generalConstructors = generalConstructors;
         }
 
         public void Start()
         {
-            isRunning = true;
+            generalConstructors.IsRunning = true;
             GenerateAndPlaceEnemyShip();
         }
 
         public void Stop()
         {
-            isRunning = false;
+            generalConstructors.IsRunning = false;
         }
 
         private void GenerateAndPlaceEnemyShip()
@@ -95,7 +97,7 @@ namespace SpaceWar
             double myshipx = positionManager.CurrentX;
             double myshipy = positionManager.CurrentY;
 
-            while (isRunning)
+            while (generalConstructors.IsRunning)
             {
                 y = AbsoluteLayout.GetLayoutBounds(enemyShipBorder).Y;
                 x = AbsoluteLayout.GetLayoutBounds(enemyShipBorder).X;

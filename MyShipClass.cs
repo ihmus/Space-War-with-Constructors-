@@ -11,18 +11,17 @@ namespace SpaceWar
         private readonly AbsoluteLayout absoluteLayout;
         private readonly string myShipPath;
         private readonly StarMoving stars;
-        public Border MyShipBorder { get; private set; }
         private const int CreateInterval = 200, MovingTime = 1000;
         private double _startX, _startY, _xOffset, _yOffset, _currentX, _currentY;
         private int runcounter = 0;
-        private bool isRunning = false; // Düzeltilmiþ yazým hatasý
-        private const int starnumbers = 100;
         private const int callingtime = 1000; // Örnek deðer, ihtiyaca göre güncelleyebilirsiniz
         private PositionManager positionManager=new PositionManager();
         private EnemyListClass enemyListClass;
         private StarManager starManager;
         private CollisionManager collisionManager;
         private Label HealthLabel;
+        private MyShipBorders myShipBorders;
+        private GeneralConstructors generalConstructors;
         private List<String> starList = new List<String>
         {
             "star.png",
@@ -31,13 +30,15 @@ namespace SpaceWar
             "hearth.png"
         };
 
-        public MyShipClass(AbsoluteLayout layout, string shipPath, StarMoving stars,PositionManager position,EnemyListClass e)
+        public MyShipClass(AbsoluteLayout layout, string shipPath, StarMoving stars,PositionManager position,EnemyListClass e,MyShipBorders msb,GeneralConstructors gc)
         {
             absoluteLayout = layout;
             myShipPath = shipPath;
             this.stars = stars;
             this.positionManager=position;
             this.enemyListClass = e;
+            this.myShipBorders = msb;
+            this.generalConstructors = gc;
         }
 
         public void MyShip(double x, double y)
@@ -57,17 +58,17 @@ namespace SpaceWar
             myShipImage.GestureRecognizers.Add(tapGestureRecognizer);
             myShipImage.GestureRecognizers.Add(panGestureRecognizer);
 
-            MyShipBorder = new Border
+            myShipBorders.MyShipBorder = new Border
             {
                 Stroke = Colors.Green,
                 StrokeThickness = 2,
                 Content = myShipImage
             };
 
-            AbsoluteLayout.SetLayoutBounds(MyShipBorder, new Rect(x, y, 100, AbsoluteLayout.AutoSize));
-            AbsoluteLayout.SetLayoutFlags(MyShipBorder, AbsoluteLayoutFlags.PositionProportional);
+            AbsoluteLayout.SetLayoutBounds(myShipBorders.MyShipBorder, new Rect(x, y, 100, AbsoluteLayout.AutoSize));
+            AbsoluteLayout.SetLayoutFlags(myShipBorders.MyShipBorder, AbsoluteLayoutFlags.PositionProportional);
 
-            absoluteLayout.Children.Add(MyShipBorder);
+            absoluteLayout.Children.Add(myShipBorders.MyShipBorder);
         }
 
         private async void OnTapped(object sender, EventArgs e)
@@ -102,7 +103,7 @@ namespace SpaceWar
                     case GestureStatus.Started:
                         if (runcounter == 0)
                         {
-                            isRunning = true;
+                            generalConstructors.IsRunning = true;
                             stars.Run();
                             fired();
                             enemyfired();
@@ -136,7 +137,7 @@ namespace SpaceWar
 
                         positionManager.CurrentX = normalizedX;
                         positionManager.CurrentY = normalizedY;
-                        AbsoluteLayout.SetLayoutBounds(MyShipBorder, new Rect(positionManager.CurrentX, positionManager.CurrentY, AbsoluteLayout.GetLayoutBounds(MyShipBorder).Width, AbsoluteLayout.GetLayoutBounds(MyShipBorder).Height));
+                        AbsoluteLayout.SetLayoutBounds(myShipBorders.MyShipBorder, new Rect(positionManager.CurrentX, positionManager.CurrentY, AbsoluteLayout.GetLayoutBounds(myShipBorders.MyShipBorder).Width, AbsoluteLayout.GetLayoutBounds(myShipBorders.MyShipBorder).Height));
 
                         await Task.Run(() => Console.WriteLine($"Pan running at X: {newX}, Y: {newY}"));
                         break;
@@ -150,14 +151,14 @@ namespace SpaceWar
 
         private async void fired()
         {
-            while (true)
+            while (generalConstructors.IsRunning)
             {
-                double x = MyShipBorder.X / absoluteLayout.Width;
-                double y = MyShipBorder.Y / absoluteLayout.Height;
+                double x = myShipBorders.MyShipBorder.X / absoluteLayout.Width;
+                double y = myShipBorders.MyShipBorder.Y / absoluteLayout.Height;
                 var bulletManager = BulletManagerFactory.CreateBulletManager(); // Use the bulletManager to create bullets
 
-                bulletManager.CreateNewBullet(x + 0.01, positionManager.CurrentY, true, MovingTime, MyShipBorder, 100);
-                bulletManager.CreateNewBullet(x + 0.08, positionManager.CurrentY, true, MovingTime,MyShipBorder,100);
+                bulletManager.CreateNewBullet(x + 0.01, positionManager.CurrentY, true, MovingTime, myShipBorders.MyShipBorder, 100);
+                bulletManager.CreateNewBullet(x + 0.08, positionManager.CurrentY, true, MovingTime, myShipBorders.MyShipBorder, 100);
                 //Debug.WriteLine($"{_currentX},{_currentX},{x},{y}");
                 await Task.Delay(CreateInterval);
             }
@@ -168,7 +169,7 @@ namespace SpaceWar
             double layoutWidth = absoluteLayout.Width; double layoutHeight = absoluteLayout.Height;
             if (!enemyListClass.EnemyShipBorders.Any()) // Liste boþsa {
                 Console.WriteLine("Enemy ship borders list is empty.");// Döngüyü sonlandýr
-            while (true)
+            while (generalConstructors.IsRunning)
             {
                 double i = 0.7;
                 foreach (var enemyShipBorder in enemyListClass.EnemyShipBorders.ToList())  // ToList() kullanarak güvenli iterasyon saðlanýr
@@ -177,33 +178,29 @@ namespace SpaceWar
                     double X = AbsoluteLayout.GetLayoutBounds(enemyShipBorder).Location.X;
                     double right = X + (0.00003 * layoutWidth);
                     double left = X - (0.00003 * layoutWidth);
-                    Debug.WriteLine($"X: {X}, Right: {right}, Left: {left}"); // Konumlarý kontrol etmek için
-                    /*
-                    if (score <= 3)
+                    //Debug.WriteLine($"X: {X}, Right: {right}, Left: {left}"); // Konumlarý kontrol etmek için
+                    if (generalConstructors.Score <= 3)
                     {
                         var bulletManager = BulletManagerFactory.CreateBulletManager(); // Use the bulletManager to create bullets
-                        bulletManager.CreateNewBullet(X, Y + 0.08, false, MovingTime);
+                        bulletManager.CreateNewBullet(X, Y + 0.08, false, MovingTime, myShipBorders.MyShipBorder, 100);
                     }
-                    else if (score <= 8)
+                    else if (generalConstructors.Score <= 8)
                     {
                         var bulletManager = BulletManagerFactory.CreateBulletManager(); // Use the bulletManager to create bullets
 
-                        bulletManager.CreateNewBullet(right, Y + 0.08, false, MovingTime);
-                        bulletManager.CreateNewBullet(left, Y + 0.08, false, MovingTime);
+                        bulletManager.CreateNewBullet(right, Y + 0.08, false, MovingTime, myShipBorders.MyShipBorder, 100);
+                        bulletManager.CreateNewBullet(left, Y + 0.08, false, MovingTime, myShipBorders.MyShipBorder, 100);
                     }
                     else
                     {
                         var bulletManager = BulletManagerFactory.CreateBulletManager(); // Use the bulletManager to create bullets
 
-                        bulletManager.CreateNewBullet(X, Y + 0.08, false, MovingTime);
-                        bulletManager.CreateNewBullet(right, Y + 0.08, false, MovingTime);
-                        bulletManager.CreateNewBullet(left, Y + 0.08, false, MovingTime);
+                        bulletManager.CreateNewBullet(X, Y + 0.08, false, MovingTime, myShipBorders.MyShipBorder, 100);
+                        bulletManager.CreateNewBullet(right, Y + 0.08, false, MovingTime, myShipBorders.MyShipBorder, 100);
+                        bulletManager.CreateNewBullet(left, Y + 0.08, false, MovingTime, myShipBorders.MyShipBorder, 100);
 
-                    }*/
-                    var bulletManager = BulletManagerFactory.CreateBulletManager();
-                    bulletManager.CreateNewBullet(X, Y + 0.08, false, MovingTime,MyShipBorder,100);
-                    bulletManager.CreateNewBullet(right, Y + 0.08, false, MovingTime, MyShipBorder, 100);
-                    bulletManager.CreateNewBullet(left, Y + 0.08, false, MovingTime, MyShipBorder, 100);
+                    }
+
                     //Debug.WriteLine($"{Y}{X}oluþturuldu");
                     i += 0.01;
                 }
@@ -215,11 +212,12 @@ namespace SpaceWar
 
         private async void calltheenemies()
         {
-            while (isRunning)
+            while (generalConstructors.IsRunning)
             {
                 var enemyManager = EnemyManagerFactory.CreateEnemyManager();
                 enemyManager.Start();
-
+                enemyManager.Start();
+                enemyManager.Start();
                 Callstarpng();
                 Callstarpng();
                 Callstarpng();
@@ -230,7 +228,7 @@ namespace SpaceWar
 
         private void Callstarpng()
         {
-            starManager = new StarManager(absoluteLayout, starList);
+            starManager = new StarManager(absoluteLayout, starList,myShipBorders,enemyListClass,generalConstructors,stars);
             starManager.CallStarPngAsync();
             // Placeholder for star creation logic
         }

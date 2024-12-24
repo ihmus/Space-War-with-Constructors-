@@ -12,48 +12,53 @@ namespace SpaceWar
         private static readonly string[] starImages = { "star.png", "star1.png", "star2.png", "star3.png" };
         private AbsoluteLayout _layout;
         private int _numberOfStars;
-        private bool _isRunning=false;
+        private GeneralConstructors generalConstructors;
 
-        public StarMoving(AbsoluteLayout layout, int numberOfStars)
+        public StarMoving(AbsoluteLayout layout, int numberOfStars, GeneralConstructors generalConstructors)
         {
             _layout = layout;
             _numberOfStars = numberOfStars;
+            this.generalConstructors = generalConstructors;
         }
 
         public void Run()
         {
-            _isRunning = true;
-            AddStars(_isRunning);
+            generalConstructors.IsRunning = true;
+            AddStars(generalConstructors.IsRunning);
         }
 
         public void Stop()
         {
-            _isRunning = false;
+            generalConstructors.IsRunning = false;
+
         }
 
         private void AddStars(bool isRunning)
         {
-            for (int i = 0; i < _numberOfStars; i++)
+            if (isRunning)
             {
-                string starImage = starImages[random.Next(starImages.Length)];
-                Image star = new Image
+                for (int i = 0; i < _numberOfStars; i++)
                 {
-                    Source = starImage,
-                    WidthRequest = starImage == "star.png" ? random.Next(1, 21) : 15,
-                    HeightRequest = -1
-                };
+                    string starImage = starImages[random.Next(starImages.Length)];
+                    Image star = new Image
+                    {
+                        Source = starImage,
+                        WidthRequest = starImage == "star.png" ? random.Next(1, 21) : 15,
+                        HeightRequest = -1
+                    };
 
-                double xPos = random.NextDouble();
-                double yPos = random.NextDouble();
-                AbsoluteLayout.SetLayoutBounds(star, new Rect(xPos, yPos, -1, -1));
-                AbsoluteLayout.SetLayoutFlags(star, AbsoluteLayoutFlags.PositionProportional);
+                    double xPos = random.NextDouble();
+                    double yPos = random.NextDouble();
+                    AbsoluteLayout.SetLayoutBounds(star, new Rect(xPos, yPos, -1, -1));
+                    AbsoluteLayout.SetLayoutFlags(star, AbsoluteLayoutFlags.PositionProportional);
 
-                _layout.Children.Add(star);
-                StartStarMoving(star, _layout, isRunning);
+                    _layout.Children.Add(star);
+                    StartStarMoving(star, _layout, isRunning);
 
-                if (starImage == "star.png")
-                {
-                    StartStarAnimation(star, isRunning, (uint)random.Next(150, 200));
+                    if (starImage == "star.png")
+                    {
+                        StartStarAnimation(star, isRunning, (uint)random.Next(150, 200));
+                    }
                 }
             }
         }
